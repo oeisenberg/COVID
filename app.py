@@ -33,6 +33,14 @@ def generate_table(dataframe, max_rows=10, max_cols=10):
     ], style={'marginLeft': 'auto', 'marginRight': 'auto'})
 
 def generate_linegraph_cases(x, y): 
+    def get_dayDeltaAsStr(numb_cases):
+        delta = numb_cases[-1:][0] - numb_cases[-2:-1][0]
+        if delta > 0:
+            indicator = "+"
+        else:
+            indicator = ""
+        return '(' + indicator + str(delta) + ')'
+
     fig = make_subplots(specs=[[{"secondary_y": False}]])
     fig.add_trace(
         go.Scatter(x=x, y=y, name="Raw Data"),
@@ -50,7 +58,7 @@ def generate_linegraph_cases(x, y):
     # )
 
     fig.update_layout(
-        title_text="Number of COVID-19 Cases within England",
+        title_text="Number of COVID-19 Cases within England " + get_dayDeltaAsStr(y),
         title_x=0.5
     )
     fig.update_xaxes(title_text="Time", range=[x[60],x[-1]])
@@ -92,8 +100,8 @@ url = (
     'filters=areaType=nation;areaName=england&'
     'structure={"male":"maleCases","female":"femaleCases"}'
 )
-data = get_data(url)
-pies = generate_piecharts_mfCases(data)
+pie_data = get_data(url)
+pies = generate_piecharts_mfCases(pie_data)
 
 app.layout = html.Div(children=[
     html.H1(
@@ -103,7 +111,7 @@ app.layout = html.Div(children=[
         }
     ),
 
-    html.Div(children='Data obtained using the GOV UK API', 
+    html.Div(children='Data obtained using the GOV UK API',
         style={
             'textAlign': 'center'
         }
