@@ -5,6 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 
 from requests import get
 from scipy import signal
@@ -32,7 +33,7 @@ def generate_table(dataframe, max_rows=10, max_cols=10):
         ])
     ], style={'marginLeft': 'auto', 'marginRight': 'auto'})
 
-def generate_linegraph_cases(x, y): 
+def generate_linegraph_cases(x, y, y2): 
     def get_dayDeltaAsStr(numb_cases):
         delta = numb_cases[-1:][0] - numb_cases[-2:-1][0]
         if delta > 0:
@@ -41,21 +42,26 @@ def generate_linegraph_cases(x, y):
             indicator = ""
         return '(' + indicator + str(delta) + ')'
 
-    fig = make_subplots(specs=[[{"secondary_y": False}]])
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
         go.Scatter(x=x, y=y, name="Raw Data"),
         secondary_y=False,
     )
 
     fig.add_trace(
-        go.Scatter(x=x, y=signal.savgol_filter(y, 7, 3), name="7 Day Average"),
+        go.Scatter(x=x, y=signal.savgol_filter(y, 7, 3), name="7 Day Case Average"),
         secondary_y=False,
     )
 
-    # fig.add_trace(
-    #     go.Scatter(x=x, y=np.diff(y), name="Rate of Change"),
-    #     secondary_y=True,
-    # )
+    fig.add_trace(
+        go.Scatter(x=x, y=y2, name="Deaths"),
+        secondary_y=True,
+    )
+
+    fig.add_trace(
+        go.Scatter(x=x, y=signal.savgol_filter(y2, 7, 3), name="7 Day Death Average"),
+        secondary_y=True,
+    )
 
     fig.update_layout(
         title_text="Number of COVID-19 Cases within England " + get_dayDeltaAsStr(y),
@@ -63,7 +69,7 @@ def generate_linegraph_cases(x, y):
     )
     fig.update_xaxes(title_text="Time", range=[x[60],x[-1]])
     fig.update_yaxes(title_text="Number of Cases", secondary_y=False)
-    # fig.update_yaxes(title_text="<b>secondary</b> yaxis title", secondary_y=True)
+    fig.update_yaxes(title_text="Number of Deaths", secondary_y=True)
 
     return fig
 
@@ -81,17 +87,28 @@ def generate_piecharts_mfCases(data):
     )
     return pies
 
+def create_card(card_id, title, description):
+    return dbc.Card(
+        dbc.CardBody(
+            [
+                html.H4(title, id=f"{card_id}-title"),
+                html.H2("100", id=f"{card_id}-value"),
+                html.P(description, id=f"{card_id}-description")
+            ]
+        )
+    )
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 url = (
     'https://api.coronavirus.data.gov.uk/v1/data?'
     'filters=areaType=nation;areaName=england&'
-    'structure={"date":"date","newCases":"newCasesByPublishDate"}'
+    'structure={"date":"date","newCases":"newCasesByPublishDate","newDeaths":"newDeaths28DaysByPublishDate"}'
 )
 data = get_data(url)
-x, y = zip(*[[value.get("date"), value.get("newCases")] for value in data.get("data")[::-1]])
-fig = generate_linegraph_cases(x, y)
+x, y, y2 = zip(*[[value.get("date"), value.get("newCases"), value.get("newDeaths")] for value in data.get("data")[::-1]])
+fig = generate_linegraph_cases(x, y, y2)
 
 df = pd.DataFrame({"Dates": x, "Number of Cases": y})
 
@@ -104,6 +121,11 @@ pie_data = get_data(url)
 pies = generate_piecharts_mfCases(pie_data)
 
 app.layout = html.Div(children=[
+
+    #dbc.Row([
+    #    dbc.Col([create_card('0', 'Title', 'Description')]), dbc.Col([create_card('1', 'Title', 'Description')])
+    #]),
+
     html.H1(
         children='COVID-19 Dashboard',
         style={
