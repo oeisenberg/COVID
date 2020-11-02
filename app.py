@@ -1,5 +1,5 @@
 import dash
-import numpy as np
+import json
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -9,6 +9,7 @@ import dash_bootstrap_components as dbc
 
 from requests import get
 from scipy import signal
+from datetime import datetime
 from plotly.subplots import make_subplots
 
 def get_data(url):
@@ -98,6 +99,20 @@ def create_card(card_id, title, description):
         )
     )
 
+def create_map(data):
+    area, cases = zip(*[[value.get("areaName"), value.get("newCases")] for value in data.get("data")[::-1]])
+    df = pd.DataFrame({"Area": area, "Number of Cases": cases})
+
+    f = open("geo.json", "r")
+    geojson = json.load(f)
+
+    fig = px.choropleth_mapbox(df, geojson=geojson, color="Number of Cases",
+                                locations="Area", featureidkey="properties.lad15nm",
+                                center={"lat": 51.509865, "lon": -0.128092},
+                                mapbox_style="carto-positron", zoom=7, height=800)
+
+    return fig
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -119,6 +134,14 @@ url = (
 )
 pie_data = get_data(url)
 pies = generate_piecharts_mfCases(pie_data)
+
+url = (
+    'https://api.coronavirus.data.gov.uk/v1/data?'
+    'filters=areaType=ltla;date=' + datetime.today().strftime('%Y-%m-%d') + '&'
+    'structure={"date":"date","newCases":"newCasesByPublishDate","areaName":"areaName"}'
+)
+data = get_data(url)
+ltla_covidmap = create_map(data)
 
 app.layout = html.Div(children=[
 
@@ -149,6 +172,11 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='Pies',
         figure=pies
+    ),
+
+    dcc.Graph(
+        id='ltla_cases',
+        figure=ltla_covidmap
     )
 ])
 
