@@ -13,12 +13,21 @@ from datetime import datetime
 from plotly.subplots import make_subplots
 
 def get_data(url):
-    response = get(url, timeout=10)
+    def check_data(url): 
+        response = get(url, timeout=10)
 
-    if response.status_code >= 400:
-        raise RuntimeError(f'Request failed: {response.text}')
+        if response.status_code >= 400:
+            raise RuntimeError(f'Request failed: {response.text}')
 
-    return response.json()
+        if response.status_code == 204:
+            raise RuntimeError(f'Request failed: {response.text}')
+
+        return response.json()
+
+    try:
+        return check_data(url)
+    except:
+        return {}
 
 def generate_table(dataframe, max_rows=10, max_cols=10):
     return html.Table([
@@ -43,6 +52,9 @@ def generate_linegraph_cases(x, y, y2):
             indicator = ""
         return '(' + indicator + str(delta) + ')'
 
+    if len(data) == 0:
+        return {}
+        
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
         go.Scatter(x=x, y=y, name="Raw Data"),
@@ -75,6 +87,9 @@ def generate_linegraph_cases(x, y, y2):
     return fig
 
 def generate_piecharts_mfCases(data):
+    if len(data) == 0:
+        return {}
+
     female_data = list(zip(*[[value.get("age"), value.get("rate"), value.get("value")] for value in data.get("data")[0].get("female")]))
     male_data = list(zip(*[[value.get("age"), value.get("rate"), value.get("value")] for value in data.get("data")[0].get("male")]))
 
@@ -100,6 +115,9 @@ def create_card(card_id, title, description):
     )
 
 def create_map(data):
+    if len(data) == 0:
+        return {}
+
     area, cases = zip(*[[value.get("areaName"), value.get("newCases")] for value in data.get("data")[::-1]])
     df = pd.DataFrame({"Area": area, "Number of Cases": cases})
 
