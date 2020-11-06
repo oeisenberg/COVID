@@ -153,9 +153,10 @@ url = (
 pie_data = get_data(url)
 pies = generate_piecharts_mfCases(pie_data)
 
+date = "2020-11-05" # datetime.today().strftime('%Y-%m-%d')
 url = (
     'https://api.coronavirus.data.gov.uk/v1/data?'
-    'filters=areaType=ltla;date=' + datetime.today().strftime('%Y-%m-%d') + '&'
+    'filters=areaType=ltla;date=' + date + '&'
     'structure={"date":"date","newCases":"newCasesByPublishDate","areaName":"areaName"}'
 )
 data = get_data(url)
@@ -190,6 +191,13 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='Pies',
         figure=pies
+    ),
+
+     html.H4(
+        children='Date: ' + date,
+        style={
+            'textAlign': 'center'
+        }
     ),
 
     dcc.Graph(
