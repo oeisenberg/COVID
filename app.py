@@ -66,7 +66,7 @@ def generate_linegraph_cases(x, y, y2):
 
     fig.add_trace(
         go.Scatter(x=x, y=signal.savgol_filter(
-            y, 7, 3), name="7 Day Case Average"),
+            y, 13, 3), name="13 Day Case Average"),
         secondary_y=False,
     )
 
@@ -77,7 +77,7 @@ def generate_linegraph_cases(x, y, y2):
 
     fig.add_trace(
         go.Scatter(x=x, y=signal.savgol_filter(
-            y2, 7, 3), name="7 Day Death Average"),
+            y2, 13, 3), name="13 Day Death Average"),
         secondary_y=True,
     )
 
@@ -201,8 +201,8 @@ def create_map_animation():
                 zmax=500
             )
         ],
-        traces=[0, 1, 2],
-        name=f'fr{date}'))
+            traces=[0, 1, 2],
+            name=f'fr{date}'))
 
     # transitions may not be supported
     frame_duration, transition_duration = 500, 500
