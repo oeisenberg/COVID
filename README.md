@@ -7,5 +7,5 @@ Instead of repeatedly visiting the GOV website during the height of the 3rd UK l
 ## Overview
 Run app.py to host the Flask app on your localhost. 
 
-[Line Graph](https://github.com/oeisenberg/COVID/blob/master/imgs/linegraph.jpg?raw=true)
-[Annimation Screen Graph](https://github.com/oeisenberg/COVID/blob/master/imgs/animation.jpg?raw=true)
+[Line Graph](https://github.com/oeisenberg/COVID/blob/master/imgs/linegraph.png?raw=true)
+[Annimation Screen Graph](https://github.com/oeisenberg/COVID/blob/master/imgs/animation.png?raw=true)
